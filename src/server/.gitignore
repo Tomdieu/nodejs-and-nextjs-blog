@@ -15,3 +15,5 @@ media/**
 !/media/images/
 !/media/videos/
 !/media/pdf/
+
+package-lock.json
