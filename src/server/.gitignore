@@ -1,3 +1,17 @@
 node_modules
 # Keep environment variables out of version control
 .env
+
+media/**
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
+
+# Ignore everything in the media folder
+/media/*
+
+# Allow the media subdirectories
+!/media/images/
+!/media/videos/
+!/media/pdf/
