@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../sqlite.db"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique
+  first_name String? @default("")
+  last_name String? @default("")
+  email String @unique
+  password String
+  is_superuser Boolean @default(false)
+  joined_on DateTime @default(now())
+
+  token Token?
+  posts Post[]
+  likes Like[]
+  comments Comment[]
+  loginHistories LoginHistory[]
+}
+
+model LoginHistory{
+  id Int @id @default(autoincrement())
+  userAgent String?
+  browser String?
+  os String?
+  isMobile Boolean?
+  ipAddress String
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+
+model Token{
+  id Int @id @default(autoincrement())
+  token String @unique
+  userId Int @unique
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  content String
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  postMedia PostMedia[]
+  likes Like[]
+  comments Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PostMedia {
+  id Int @id @default(autoincrement())
+  postId Int
+  post Post @relation(fields: [postId],references: [id],onDelete: Cascade)
+  likes Like[]
+  fileId Int
+  fileType String
+  file File @relation(fields: [fileId],references: [id],onDelete: Cascade)
+}
+
+model File{
+  id Int @id @default(autoincrement())
+  url String
+  postMedia PostMedia[]
+
+}
+
+model Like{
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId],references: [id])
+  postId Int?
+  post Post? @relation(fields: [postId],references: [id])
+  mediaId Int?
+  media PostMedia? @relation(fields: [mediaId],references: [id],onDelete: Cascade)
+}
+
+
+model Comment{
+  id Int @id @default(autoincrement())
+  content String
+  postId Int
+  post Post @relation(fields: [postId],references: [id])
+
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  parentId  Int?
+
+  replies Comment[] @relation("ReplyTo")
+  parent Comment? @relation("ReplyTo",fields: [parentId],references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
