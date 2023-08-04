@@ -25,9 +25,18 @@ app.use(useragent.express());
 
 app.use(express.json());
 
+app.use((req,res,next)=>{
+  const url = req.url
+  const method = req.method
+  const date = new Date()
+  const ipAddress = req.ip;
+  const time = `${date.getHours()}:${date.getMinutes() }:${date.getSeconds()}:${date.getMilliseconds()}`
+
+  console.log(`[${date.toDateString()} ${time}] : METHOD: ${method} - URL: ${url} - IP: ${ipAddress}`)
+  next()
+})
+
 app.get("/", (req, res) => {
-  const host = req.get('host');
-  console.log(host)
   res.send("<h1>Welcome to my blog backend</h1>");
 });
 

@@ -15,7 +15,6 @@ export default class PostController {
         postMedia: {
           include: {
             file: true,
-            likes: { include: { user: { select: { username: true } } } },
           },
         },
         comments: { include: { replies: true, user: true } },
@@ -24,17 +23,16 @@ export default class PostController {
     return res.status(200).send(PostSerializer(posts, req));
   }
 
-  static async getUserPosts(req:Request,res:Response){
+  static async getUserPosts(req: Request, res: Response) {
     const posts = await prisma.post.findMany({
-      where:{
-        userId:req.user_id
+      where: {
+        userId: req.user_id,
       },
       include: {
         user: { select: { username: true } },
         postMedia: {
           include: {
             file: true,
-            likes: { include: { user: { select: { username: true } } } },
           },
         },
         comments: { include: { replies: true, user: true } },
@@ -44,7 +42,7 @@ export default class PostController {
   }
 
   static async createPost(req: Request, res: Response) {
-    const { content } = req.body;
+    const {title, content } = req.body;
     const user_id = req.user_id;
     const files = req.files;
     if (user_id) {
@@ -65,6 +63,7 @@ export default class PostController {
       const post = await prisma.post.create({
         data: {
           content,
+          title,
           userId: user_id,
           postMedia: {
             create: postMedia,
@@ -73,8 +72,7 @@ export default class PostController {
         include: {
           postMedia: {
             include: {
-              file: true,
-              likes: { include: { user: { select: { username: true } } } },
+              file: true
             },
           },
           comments: { include: { replies: true, user: true } },
@@ -100,7 +98,7 @@ export default class PostController {
 
   static async updatePost(req: Request, res: Response) {
     const id = Number(req.params.id);
-    const { content } = req.body;
+    const { title,content,published =false} = req.body;
     let post: Post | null;
     post = (await prisma.post.findUnique({ where: { id } })) as Post;
 
@@ -108,15 +106,15 @@ export default class PostController {
       return res.status(404).send({ error: "Not Found" });
     }
 
-    if (content) {
-      post = (await prisma.post.update({
-        where: { id },
-        data: {
-          content,
-        },
-        include: { postMedia: { include: { file: true } } },
-      })) as Post;
-    }
+    post = (await prisma.post.update({
+      where: { id },
+      data: {
+        content:content||post.content,
+        title:title||post.title,
+        published:published||post.published
+      },
+      include: { postMedia: { include: { file: true } } },
+    })) as Post;
     return res.status(200).send(post);
   }
   static async deletePost(req: Request, res: Response) {

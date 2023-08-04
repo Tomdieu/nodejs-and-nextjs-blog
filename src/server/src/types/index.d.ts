@@ -38,8 +38,10 @@ export interface Token {
 
 export interface Post {
   id: number;
+  title:string;
   content: string;
   userId: number;
+  published:boolean;
   user: User;
   postMedia: PostMedia[];
   likes: Like[];
@@ -51,7 +53,6 @@ export interface PostMedia {
   id: number;
   postId: number;
   post: Post;
-  likes: Like[];
   fileId: number;
   fileType: string;
   file: File;
@@ -69,6 +70,4 @@ export interface Like {
   user: User;
   postId?: number | null;
   post?: Post | null;
-  mediaId?: number | null;
-  media?: PostMedia | null;
 }

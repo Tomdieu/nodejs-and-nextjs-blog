@@ -1,6 +1,8 @@
 import { Router } from "express";
 import UserController from "../controllers/UserController";
 import authenticate from "../middleware/authenticate";
+import validateResource from "../middleware/validateResource";
+import { createUserSchema, loginSchema, updateUserSchema } from "../schema/user.schema";
 
 const router = Router();
 
@@ -53,7 +55,7 @@ router.get("/",authenticate, UserController.getAllUsers);
  * @returns {LoginResponse} 201 - The created user
  * @returns {ErrorResponse} 401 - Bad request
  */
-router.post("/login", UserController.authenticate);
+router.post("/login",validateResource(loginSchema) ,UserController.authenticate);
 
 /**
  * POST /api/user/
@@ -63,7 +65,7 @@ router.post("/login", UserController.authenticate);
  * @returns {LoginResponse} 201 - The created user
  * @returns {ErrorResponse} 400 - Bad request
  */
-router.post("/", UserController.createUser);
+router.post("/",validateResource(createUserSchema), UserController.createUser);
 
 /**
  * GET /api/user/{id}/
@@ -86,7 +88,7 @@ router.get("/:id/", UserController.getUser);
  * @returns {ErrorResponse} 404 - Not Found
  * @return {ErrorResponse} 500 -  Server Error
  */
-router.put("/:id/", UserController.updateUser);
+router.put("/:id/",validateResource(updateUserSchema), UserController.updateUser);
 /**
  * PUT /api/user/{id}/
  * @tags User
@@ -97,7 +99,7 @@ router.put("/:id/", UserController.updateUser);
  * @returns {ErrorResponse} 404 - Not Found
  * @return {ErrorResponse} 500 -  Server Error
  */
-router.patch("/:id/", UserController.updateUser);
+router.patch("/:id/",validateResource(updateUserSchema), UserController.updateUser);
 
 /**
  * DELETE /api/user/{id}/

@@ -3,14 +3,22 @@ import bcrypt from "bcrypt";
 import generateToken from "../../utils/generateToken";
 import verifyPassword from "../../utils/verifyPassword";
 import { PrismaClient } from "@prisma/client";
+import { CreateUserInput, LoginInput, UpdateUserInput } from '../schema/user.schema';
 const prisma = new PrismaClient();
 
 export default class UserController {
-  static async authenticate(req: Request, res: Response) {
+  static async authenticate(req: Request<{},{},LoginInput['body']>, res: Response) {
+    const { username, password } = req.body;
+
     try {
-      const { username, password } = req.body;
-      if (username !== "" && password !== "") {
-        const user = await prisma.user.findUnique({
+      
+      if(username === "" || password === ""){
+        return res.status(401).json({
+          error:
+            "Invalid credentials. Please check your username and password.",
+        });
+      }
+      const user = await prisma.user.findUnique({
           where: { username },
           select: {
             id: true,
@@ -23,6 +31,7 @@ export default class UserController {
             password: true,
           },
         });
+      console.log({user})
         if (user) {
           const isValidPassword = await verifyPassword(password, user.password);
           console.log("isValid Password ", isValidPassword);
@@ -59,12 +68,6 @@ export default class UserController {
             });
           }
         }
-      } else {
-        res.status(401).json({
-          error:
-            "Invalid credentials. Please check your username and password.",
-        });
-      }
     } catch (error) {
       res.status(401).json({
         error: "Invalid credentials. Please check your username and password.",
@@ -116,7 +119,7 @@ export default class UserController {
       res.status(500).json({ error: err });
     }
   }
-  static async createUser(req: Request, res: Response) {
+  static async createUser(req: Request<{},{},CreateUserInput['body']>, res: Response) {
     const {
       username,
       first_name = "",
@@ -125,11 +128,15 @@ export default class UserController {
       password,
     } = req.body;
     try {
+      console.log(req.body)
       const existingUser = await prisma.user.findMany({
         where: { OR: [{ username }, { email }] },
       });
       console.log({ existingUser });
       if (existingUser.length > 0) {
+        if((existingUser[0].username === username) && (existingUser[0].email === email)){
+          return res.status(409).json({ error: "Username and email already exists." });
+        }
         if (existingUser[0].username === username) {
           return res.status(409).json({ error: "Username already talken." });
         } else {
@@ -159,14 +166,14 @@ export default class UserController {
     }
   }
 
-  static async updateUser(req: Request, res: Response) {
+  static async updateUser(req: Request<any,{},UpdateUserInput['body']>, res: Response) {
     const userId = +req.params.id;
     const {
       username,
       first_name,
       last_name,
       email,
-      is_admin = false,
+      is_superuser = false,
     } = req.body;
     try {
       const user = await prisma.user.findMany({
@@ -201,7 +208,7 @@ export default class UserController {
           first_name: first_name || userToUpdate?.first_name,
           last_name: last_name || userToUpdate?.last_name,
           email: email || userToUpdate?.email,
-          is_superuser: is_admin || userToUpdate?.is_superuser,
+          is_superuser: is_superuser || userToUpdate?.is_superuser,
         },
       });
 
@@ -211,7 +218,7 @@ export default class UserController {
     }
   }
   // Delete user by ID
-  static async deleteUser(req: Request, res: Response) {
+  static async deleteUser(req: Request<CreateUserInput['params']>, res: Response) {
     const userId = +req.params.id;
 
     try {

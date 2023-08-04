@@ -21,21 +21,7 @@ export default class LikeController {
     }
   }
 
-  static async createMediaLike(req: Request, res: Response) {
-    try {
-      const { mediaId } = req.body;
-      const userId = Number(req.user_id);
-      const mediaLike = await prisma.like.create({
-        data: {
-          userId,
-          mediaId,
-        },
-      });
-      return res.status(201).json(mediaLike);
-    } catch (error) {
-      res.status(505).send({ error: "Something went wrong" });
-    }
-  }
+  
 
   static async getPostLikes(req: Request, res: Response) {
     try {
@@ -50,16 +36,4 @@ export default class LikeController {
     }
   }
 
-  static async getMediaLikes(req: Request, res: Response) {
-    try {
-      const mediaId = +req.params.id;
-      const postLikes = await prisma.like.findMany({
-        where: { mediaId },
-        include: { user: { select: { id: true, username: true } } },
-      });
-      return res.status(200).json(postLikes);
-    } catch (error) {
-      res.status(505).send({ error: "Something went wrong" });
-    }
-  }
 }
